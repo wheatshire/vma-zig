@@ -3,6 +3,10 @@
     .version = "0.1.0",
     //.minimum_zig_version = "0.11.0",
     .dependencies = .{
+        .vulkan_headers = .{
+            .url = "https://github.com/KhronosGroup/Vulkan-Headers/archive/v1.3.283.tar.gz",
+            .hash = "1220a7e73d72a0d56bc2a65f9d8999a7c019e42260a0744c408d1cded111bc205e10",
+        },
         .vulkan_zig = .{
             .url = "https://github.com/Snektron/vulkan-zig/archive/51c5566f92e72fa4a9187c99b61e33f25398f370.tar.gz",
             .hash = "1220ac3050a262ecf61678144a261d71da9e2bddfecd45d70428669e1215be1b689b",

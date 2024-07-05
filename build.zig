@@ -4,14 +4,12 @@ pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
 
-    const registry = b.option([]const u8, "registry", "Path to the Vulkan registry") orelse @panic("provide path to the Vulkan registry");
+    const vulkan_dep = b.dependency("vulkan_headers", .{});
+    const vulkan_registry = vulkan_dep.path("registry/vk.xml").getPath(b);
 
     const vkzig = b.dependency("vulkan_zig", .{
-        .registry = registry,
+        .registry = vulkan_registry,
     });
-
-    const vulkan_lib = if (target.result.os.tag == .windows) "vulkan-1" else "vulkan";
-    const vulkan_sdk = b.graph.env_map.get("VK_SDK_PATH") orelse @panic("VK_SDK_PATH is not set");
 
     const wf = b.addWriteFiles();
     const vma_src = wf.add("vk_mem_alloc.cpp",
@@ -26,9 +24,7 @@ pub fn build(b: *std.Build) void {
     });
     vma.linkLibCpp();
     vma.addIncludePath(b.path("."));
-    vma.addIncludePath(b.path(b.pathJoin(&.{ vulkan_sdk, "include" })));
-    vma.addLibraryPath(b.path(b.pathJoin(&.{ vulkan_sdk, "lib" })));
-    vma.linkSystemLibrary(vulkan_lib);
+    vma.addIncludePath(vulkan_dep.path("include"));
     vma.addCSourceFile(.{ .file = vma_src });
 
     const vma_zig = b.addModule("vma-zig", .{
@@ -37,9 +33,8 @@ pub fn build(b: *std.Build) void {
             .{ .name = "vulkan-zig", .module = vkzig.module("vulkan-zig") },
         },
     });
-    vma_zig.addLibraryPath(b.path(b.pathJoin(&.{ vulkan_sdk, "lib" })));
-    vma_zig.addIncludePath(b.path(b.pathJoin(&.{ vulkan_sdk, "include" })));
     vma_zig.addIncludePath(b.path("."));
+    vma_zig.addIncludePath(vulkan_dep.path("include"));
     vma_zig.linkLibrary(vma);
 
     const lib_unit_tests = b.addTest(.{
